@@ -7,8 +7,8 @@ public class Test {
 	public static void main(String[] args) {
 		int[] memory = new int[128 * 1024]; // 128kb of RAM
 
-        System.arraycopy(new int[] { CPU.COND_AL << 4 | 0b1010, 0x00, 0x00, 0xff }, 0, memory, 0x00000000, 4); // 0x00000000: B #FF
-        System.arraycopy(new int[] { CPU.COND_AL << 4 | 0b1010, 0x00, 0x00, 0x00 }, 0, memory, 0x000000ff, 4); // 0x000000ff: B #00
+        System.arraycopy(new int[] { CPU.COND_AL << 4 | 0b1010, 0x00, 0x00, 0x3f }, 0, memory, 0x00000000, 4); // 0x00000000: B #FF
+        System.arraycopy(new int[] { CPU.COND_AL << 4 | 0b1010, 0xFF, 0xFF, 0xC2 }, 0, memory, 0x00000100, 4); // 0x000000ff: B #00
 
         CPU cpu = new CPU(memory);
         
@@ -31,6 +31,7 @@ public class Test {
         
 		while(true) {
 		    cpu.process();
+		    System.out.println(cpu);
 		    instructions++;
 		}
 	}

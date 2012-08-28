@@ -104,7 +104,6 @@ public class CPU {
         int instr1 = memory[pc + 1];
         int instr2 = memory[pc + 2];
         int instr3 = memory[pc + 3];
-        pc += 4;
         
         int cond = (instr0 & 0b11110000) >> 4;
         
@@ -132,13 +131,18 @@ public class CPU {
             if(flag) {
                 int type = (instr0 & 0b1110) >> 1;
                 int rd, rn;
+                int value;
                 boolean I, P, U, B, W, L;
                 switch(type) {
                     case 0b101:                             // B, BL
                         if((instr0 >> 0 & 1) == 1)          // L bit
                             this.setRegister(REG_R14, pc);  // Store instruction after branch
     
-                        pc = (instr1 << 16 | instr2 << 8 | instr3) << 2;
+                        value = (instr1 & 0b01111111 << 16 | instr2 << 8 | instr3);
+                        if ((instr1 >> 7 & 1) == 1)
+                        	value |= 0x3F000000;
+                        
+                        pc += (value << 2);
                         break;
 
                     case 0b010:                             // Pointer
@@ -166,9 +170,11 @@ public class CPU {
                     // 
                 }
             }
-        } else {                                            // conditional
+            
+        } else {                                            // unconditional
             
         }
+        pc += 4;
         
     }
 
@@ -389,6 +395,7 @@ public class CPU {
         
         return builder.toString();
     }
+   
     
     
 

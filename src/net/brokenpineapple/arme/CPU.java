@@ -130,18 +130,16 @@ public class CPU {
             
             if(flag) {
                 int type = (instr0 & 0b1110) >> 1;
+                int subtype;
                 int rd, rn;
                 int value;
-                boolean I, P, U, B, W, L;
+                boolean I, P, U, B, W, L, S;
                 switch(type) {
                     case 0b101:                             // B, BL
                         if((instr0 >> 0 & 1) == 1)          // L bit
                             this.setRegister(REG_R14, pc);  // Store instruction after branch
     
                         value = (instr1 << 16 | instr2 << 8 | instr3);
-                        
-                        // value = 0b0000 0000 1111 1111
-                        
                         if ((instr1 >> 7 & 1) == 1)
                         	value |= 0x3F000000;
                         
@@ -164,7 +162,42 @@ public class CPU {
                             
                             
                         }
-                        
+                        break;
+
+                    case 0b000:                             // Pointer
+                    case 0b001:                             // Immediate
+                        subtype = (instr0 >> 1 & 1) << 3 | (instr1 & 0b11100000) >> 5;
+                        switch(subtype) {
+                            case 0b1101:
+                                I = (instr0 >> 2 & 1) == 1;
+                                S = (instr1 >> 4 & 1) == 1;
+                                rd = instr2 >> 4 & 0b1111;
+                                
+                                if(S && rd == REG_PC) {
+                                    this.setRegister(REG_CPSR, this.getRegister(REG_SPSR));
+                                } else {
+                                    
+                                }
+                                
+                                // 1110 0001 1010 0000 1111 0000 0000 1110
+                                
+                                /*
+                                if ConditionPassed(cond) then
+                                    Rd = shifter_operand
+                                    if S == 1 and Rd == R15 then
+                                        if CurrentModeHasSPSR() then
+                                            CPSR = SPSR
+                                        else UNPREDICTABLE
+                                    else if S == 1 then
+                                        N Flag = Rd[31]
+                                        Z Flag = if Rd == 0 then 1 else 0
+                                        C Flag = shifter_carry_out
+                                        V Flag = unaffected
+                                */
+                                
+                                break;
+                                
+                        }
                         
                         
                         break;

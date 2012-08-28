@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2012 Emiel Tasseel and James Lee King.
+ * Copyright (c) 2012 Emiel Tasseel and James King.
  * All rights reserved. This file is part of ARME.
  * 
  * ARME is free software: you can redistribute it and/or modify
@@ -100,11 +100,15 @@ public class CPU {
     }
     
     public void process() {
-        int cond = (memory[pc] & 0b11110000) >> 4;
+        int instr0 = memory[pc + 0];
+        int instr1 = memory[pc + 1];
+        int instr2 = memory[pc + 2];
+        int instr3 = memory[pc + 3];
+        pc += 4;
         
-        if(cond == COND_UC) {                               // unconditional
-            
-        } else {
+        int cond = (instr0 & 0b11110000) >> 4;
+        
+        if(cond != COND_UC) {                               // conditional
             boolean flag = false;
             
             switch(cond) {              
@@ -126,11 +130,46 @@ public class CPU {
             }
             
             if(flag) {
-                System.out.println("Condition validated");
+                int type = (instr0 & 0b1110) >> 1;
+                int rd, rn;
+                boolean I, P, U, B, W, L;
+                switch(type) {
+                    case 0b101:                             // B, BL
+                        if((instr0 >> 0 & 1) == 1)          // L bit
+                            this.setRegister(REG_R14, pc);  // Store instruction after branch
+    
+                        pc = (instr1 << 16 | instr2 << 8 | instr3) << 2;
+                        break;
+
+                    case 0b010:                             // Pointer
+                    case 0b011:                             // Immediate
+                        I = (instr0 >> 1 & 1) == 1;
+                        P = (instr0 >> 0 & 1) == 1;
+                        U = (instr0 >> 7 & 1) == 1;
+                        B = (instr1 >> 6 & 1) == 1;
+                        W = (instr1 >> 5 & 1) == 1;
+                        L = (instr1 >> 4 & 1) == 1;
+                        
+                        if(!B && L) {                       // LDR
+                            rd = instr2 >> 4 & 0b1111;
+                            rn = instr1 >> 0 & 0b1111;
+                            
+                            
+                        }
+                        
+                        
+                        
+                        break;
+                    // B: 1=immediate, 0=register(pointer)
+                    // COND 01IP UBWL REGN REGD [  specific  ]
+                    // 1110 0101 1001 0000 0001 0000 0000 0000 LDR R1, [R0] ; Load R1 from the address in R0
+                    // 
+                }
             }
+        } else {                                            // conditional
+            
         }
         
-        pc += 4;
     }
 
     public void setRegister(int r, int v) {
@@ -341,5 +380,16 @@ public class CPU {
         this.cpsr = (v >> 3 & 1) == 1 ? cpsr | (1 << 3) : cpsr & ~(1 << 3);
         this.cpsr = (v >> 4 & 1) == 1 ? cpsr | (1 << 4) : cpsr & ~(1 << 4);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        
+        builder.append("PC: " + pc);
+        
+        return builder.toString();
+    }
+    
+    
 
 }

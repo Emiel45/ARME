@@ -100,10 +100,10 @@ public class CPU {
     }
     
     public void process() {
-        int instr0 = memory[pc + 0];
-        int instr1 = memory[pc + 1];
-        int instr2 = memory[pc + 2];
-        int instr3 = memory[pc + 3];
+        int instr0 = memory[pc + 3];
+        int instr1 = memory[pc + 2];
+        int instr2 = memory[pc + 1];
+        int instr3 = memory[pc + 0];
         
         int cond = (instr0 & 0b11110000) >> 4;
         
@@ -138,11 +138,15 @@ public class CPU {
                         if((instr0 >> 0 & 1) == 1)          // L bit
                             this.setRegister(REG_R14, pc);  // Store instruction after branch
     
-                        value = (instr1 & 0b01111111 << 16 | instr2 << 8 | instr3);
+                        value = (instr1 << 16 | instr2 << 8 | instr3);
+                        
+                        // value = 0b0000 0000 1111 1111
+                        
                         if ((instr1 >> 7 & 1) == 1)
                         	value |= 0x3F000000;
                         
-                        pc += (value << 2);
+                        value = (value << 2);
+                        pc += value + 4;
                         break;
 
                     case 0b010:                             // Pointer
@@ -174,8 +178,8 @@ public class CPU {
         } else {                                            // unconditional
             
         }
+
         pc += 4;
-        
     }
 
     public void setRegister(int r, int v) {
